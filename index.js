@@ -19,7 +19,7 @@ objInput.addEventListener("change", importObj);
 importButton.addEventListener("click", function() {
     let fullPath = objInput.value;
     if (fullPath) {
-        document.getElementById("objSource").innerHTML = objText;
+        document.getElementById("objSource").value = objText;
 
         let startIndex = (fullPath.indexOf('\\') >= 0 ? fullPath.lastIndexOf('\\') : fullPath.lastIndexOf('/'));
         let filename = fullPath.substring(startIndex);

@@ -3,7 +3,7 @@ let objectName, scale, useNormals, useTexture;
 let vertices, uvs, normals, faces, other;
 
 document.getElementById("convertButton").addEventListener("click", function() {
-    let objText = document.getElementById("objSource").innerHTML;
+    let objText = document.getElementById("objSource").value;
     convert(objText);
 });
 
@@ -79,7 +79,7 @@ function loadFace(line) {
         let v1 = f[0].split("/");
         let v2 = f[i].split("/");
         let v3 = f[i + 1].split("/");
-        
+
         let t = [];
         t[0] = Number(v1[0]);
         t[1] = Number(v2[0]);
