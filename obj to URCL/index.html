@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>renderer.urcl obj importer</title>
+        <link rel="stylesheet" href="index.css">
+    </head>
+    <body>
+        <main>
+            <div>
+                <h2 style="display: inline-block; vertical-align: bottom;">
+                    <span>.obj source</span>
+                    <span style="float: right">
+                        <input id="sourceFile" type="file" accept=".obj"> <span id="sourceFileMsg"></span><br>
+                        <button id="importButton" style="width: 100%" disabled>import file</button>
+                    </span>
+                </h2>
+                <textarea id="objSource"></textarea>
+            </div>
+            <div>
+                <label>object name: </label><input id="objectName" type="text"><br>
+                <label>use UVs: </label><input id="useUVs" type="checkbox"><br>
+                <label>use normals: </label><input id="useNormals" type="checkbox"><br>
+                <label>texture: </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
+                <label>use texture: </label><input id="useTexture" type="checkbox"><br>
+                <button id="convertButton">Convert</button><br>
+                <h3>Converted URCL data:</h3>
+                <textarea id="URCL output" readonly></textarea>
+            </div>
+        </main>
+        <script src="index.js"></script>
+    </body>
+</html>
