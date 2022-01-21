@@ -29,13 +29,14 @@ importButton.addEventListener("click", function() {
 
         document.getElementById("objectName").value = filename.substring(0, filename.length - 4);
 
-        document.getElementById("useUVs").checked = objText.includes("vt ");
-        document.getElementById("useNormals").checked = objText.includes("vn ");
+        document.getElementById("useNormals").checked = objText.includes("\nvn ");
     }
 });
 
 document.getElementById("textureFile").addEventListener("change", function() {
+    let useTexture = document.getElementById("useTexture");
     //TODO load image file
-    document.getElementById("useTexture").checked = true;
+    useTexture.disabled = false;
+    useTexture.checked = true;
 });
 

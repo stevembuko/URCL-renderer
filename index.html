@@ -21,15 +21,16 @@
             </div>
             <div>
                 <label>object name: </label><input id="objectName" type="text"><br>
-                <label>use UVs: </label><input id="useUVs" type="checkbox"><br>
-                <label>use normals: </label><input id="useNormals" type="checkbox"><br>
-                <label>texture: </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
-                <label>use texture: </label><input id="useTexture" type="checkbox"><br>
+                <label>scale: </label><input id="scale" type="number" value="2"><br>
+                <label>use normals (not fully supported yet): </label><input id="useNormals" type="checkbox"><br>
+                <label>texture (not fully supported yet): </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
+                <label>use texture (not fully supported yet): </label><input id="useTexture" type="checkbox" disabled><br>
                 <button id="convertButton">Convert</button><br>
                 <h3>Converted URCL data:</h3>
-                <textarea id="URCL output" readonly></textarea>
+                <textarea id="urclOutput" readonly></textarea>
             </div>
         </main>
         <script src="index.js"></script>
+        <script src="converter.js"></script>
     </body>
 </html>
