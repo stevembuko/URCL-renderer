@@ -101,39 +101,39 @@ function loadFace(line) {
 function buildURCLOutput() {
     let output = "." + objectName + "\n";
     output += "\t//map\n";
-    output += "\t\tDW[ ." + objectName + "Vertices ] //vertices address\n";
-    output += "\t\tDW[ " + (useTexture ? "." + objectName + "UVs ] //UVs address\n" : "0 ] //no UVs\n");
-    output += "\t\tDW[ " + (useNormals ? "." + objectName + "Normals ] //normals address\n" : "0 ] //no normals\n");
-    output += "\t\tDW[ ." + objectName + "Tris ] //triangles address\n";
-    output += "\t\tDW[ " + (useTexture ? "." + objectName + "Texture ] //texture address\n" : "0 ] //no texture\n")
+    output += "\t\tDW [ ." + objectName + "Vertices ] //vertices address\n";
+    output += "\t\tDW [ " + (useTexture ? "." + objectName + "UVs ] //UVs address\n" : "0 ] //no UVs\n");
+    output += "\t\tDW [ " + (useNormals ? "." + objectName + "Normals ] //normals address\n" : "0 ] //no normals\n");
+    output += "\t\tDW [ ." + objectName + "Tris ] //triangles address\n";
+    output += "\t\tDW [ " + (useTexture ? "." + objectName + "Texture ] //texture address\n" : "0 ] //no texture\n")
     output += "\t//end map\n";
     output += "\t//vertices\n";
-    output += "\t\tDW[ " + vertices.length + " ] //num vertices\n";
+    output += "\t\tDW [ " + vertices.length + " ] //num vertices\n";
     output += "\t." + objectName + "Vertices //x, y, z\n";
     vertices.forEach(v => {
-        output  += "\t\tDW[ " + v[0] + " " + v[1] + " " + v[2] + " ]\n";
+        output  += "\t\tDW [ " + v[0] + " " + v[1] + " " + v[2] + " ]\n";
     });
     output += "\t//end vertices\n";
     if (useTexture) {
         output += "\t//UVs\n";
-        output += "\t\tDW[ " + uvs.length + " ] //num UVs\n";
+        output += "\t\tDW [ " + uvs.length + " ] //num UVs\n";
         output += "\t." + objectName + "UVs //u, v\n"
         uvs.forEach(vt => {
-            output += "\t\tDW[ " + vt[0] + " " + vt[1] + " ]\n";
+            output += "\t\tDW [ " + vt[0] + " " + vt[1] + " ]\n";
         });
         output += "\t//end UVs\n";
     }
     if (useNormals) {
         output += "\t//normals\n";
-        output += "\t\tDW[ " + normals.length + " ] //num normals\n";
+        output += "\t\tDW [ " + normals.length + " ] //num normals\n";
         output += "\t." + objectName + "Normals //x, y, z\n";
         normals.forEach(vn => {
-            output += "\t\tDW[ " + vn[0] + " " + vn[1] + " " + vn[2] + " ]\n";
+            output += "\t\tDW [ " + vn[0] + " " + vn[1] + " " + vn[2] + " ]\n";
         });
         output += "\t//end normals\n";
     }
     output += "\t//tris\n";
-    output += "\t\tDW[ " + faces.length + " ] //num tris\n";
+    output += "\t\tDW [ " + faces.length + " ] //num tris\n";
     output += "\t." + objectName + "Tris //v1, v2, v3";
     if (useTexture) {
         output += ", vt1, vt2, vt3";
@@ -143,7 +143,7 @@ function buildURCLOutput() {
     }
     output += "\n";
     faces.forEach(t => {
-        let line = "\t\tDW[ ";
+        let line = "\t\tDW [ ";
         t.forEach(v => {
             line += v + " ";
         });
