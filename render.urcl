@@ -10,16 +10,16 @@ DW [ 1 0 0 ]
 DW [ 0 1 0 ]
 DW [ 0 0 1 ]
 .camLens //pixels per unit at one unit of distance
-DW [ 1 ] // <-- set this to 1 if you're using orthographic. Otherwise, feel free to adjust it. The larger it is relative to screen size, the narrower the FOV. If this = screen size, you get 90 degrees FOV.
+DW [ 1 ] // <-- set this to 1 if you're using orthographic. Otherwise, feel free to adjust it. The larger it is relative to screen size, the narrower the FOV. If this == screen size, you get 90 degrees FOV.
 .camClipNear //near clipping plane
 DW [ 1 ]
 .camClipFar //far clipping plane
 DW [ 2056 ]
 
 
-@define meshAddr .bottle // <-- replace this label with the mesh's name
+@define meshAddr .bottle // <-- replace this label with your mesh's name
 @define fillTriangles 1 // <-- set this to zero if you only want the point cloud, no filled triangles
-@define orthographic 1 // <-- 1 = orthographic, 0 = perspective
+@define orthographic 1 // <-- 1 = orthographic, 0 = perspective. Orthographic is less broken. Make sure to adjust the .camLens value when using orthographic.
 
 //V V paste mesh data here V V
 
