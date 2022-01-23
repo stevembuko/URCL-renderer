@@ -20,12 +20,24 @@
                 <textarea id="objSource"></textarea>
             </div>
             <div>
-                <label>object name: </label><input id="objectName" type="text"><br>
-                <label>scale: </label><input id="scale" type="number" value="2"><br>
-                <label>use normals (not fully supported yet): </label><input id="useNormals" type="checkbox"><br>
-                <label>texture (not fully supported yet): </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
-                <label>use texture (not fully supported yet): </label><input id="useTexture" type="checkbox" disabled><br>
-                <button id="convertButton">Convert</button><br>
+                <h2>Options</h2>
+                <span class="options">
+                    <label>object name: </label><input id="objectName" type="text" value="mesh">
+                </span>
+                <span class="options">
+                    <label>scale: </label><input id="scale" type="number" value="2">
+                </span>
+                <span class="options">
+                    <label>use normals (not fully supported yet): </label><input id="useNormals" type="checkbox">
+                </span>
+                <span class="options">
+                    <label>texture (not fully supported yet): </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
+                    <img id="texturePreview" alt="preview image">
+                </span>
+                <span class="options">
+                    <label>use texture (not fully supported yet): </label><input id="useTexture" type="checkbox" disabled>
+                </span><br>
+                <button id="convertButton">Convert</button>
                 <h3>Converted URCL data:</h3>
                 <textarea id="urclOutput" readonly></textarea>
             </div>

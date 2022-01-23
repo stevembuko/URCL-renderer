@@ -1,20 +1,20 @@
 const objInput = document.getElementById("sourceFile");
 const importButton = document.getElementById("importButton");
+const textureInput = document.getElementById("textureFile");
 
 let objText;
 
-let importObj = function(event) {
-    let input = event.target;
+objInput.addEventListener("change", function(event) {
+    let files = event.target.files;
 
     let reader = new FileReader();
     reader.onload = function() {
         objText = reader.result;
     }
-    reader.readAsText(input.files[0]);
+    reader.readAsText(files[0]);
     
     importButton.disabled = false;
-}
-objInput.addEventListener("change", importObj);
+});
 
 importButton.addEventListener("click", function() {
     let fullPath = objInput.value;
@@ -33,9 +33,17 @@ importButton.addEventListener("click", function() {
     }
 });
 
-document.getElementById("textureFile").addEventListener("change", function() {
+textureInput.addEventListener("change", function(event) {
+    let files = event.target.files;
+
+    let reader = new FileReader();
+
+    reader.onload = function() {
+        document.getElementById("texturePreview").src = reader.result;
+    }
+    reader.readAsDataURL(files[0]);
+
     let useTexture = document.getElementById("useTexture");
-    //TODO load image file
     useTexture.disabled = false;
     useTexture.checked = true;
 });

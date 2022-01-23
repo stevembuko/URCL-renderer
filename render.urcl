@@ -10,7 +10,7 @@ DW [ 1 0 0 ]
 DW [ 0 1 0 ]
 DW [ 0 0 1 ]
 .camLens //pixels per unit at one unit of distance
-DW [ 128 ] // <-- set this low (1 is good) if you're using orthographic. When using perspective, the larger it is relative to screen size, the narrower the FOV. If this == screen size, you get 90 degrees FOV. It's also worth noting that if this * screen size > @smax, you may run into overflow errors.
+DW [ 128 ]  // <-- set this low (1 is good) if you're using orthographic. When using perspective, the larger it is relative to screen size, the narrower the FOV. If this == screen size, you get 90 degrees FOV. It's also worth noting that if this * screen size > @smax, you may run into overflow errors.
 .camClipNear //near clipping plane
 DW [ 1 ]
 .camClipFar //far clipping plane
@@ -295,7 +295,7 @@ ret
         sub gen1 gen2 gen1
         lstr activeVertex y gen1
 
-        imm clip 0 //TODO find a better clipping method. Probably depth-based per-pixel.
+        imm clip 0 //TODO find a better clipping method.
     ret
     .toScreenSpaceClip
         out %text 'c'
@@ -364,8 +364,6 @@ ret
     bre .flatTopTri var2 var1
 
     //draw the triangle normally
-        //TODO the code to handle non-edge cases
-
         llod var1 v3 x
         llod var2 v1 x
         sub gen1 var1 var2
