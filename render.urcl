@@ -4,13 +4,13 @@ minreg 15
 
 //camera varibles
 .camPos //x, y, and z position of the camera
-DW [ 0 150 -1000 ] // <-- adjust the Z position of the camera here
+DW [ 0 150 -1000 ] // <-- adjust the position of the camera here
 .camRotation //simplified world to camera space matrix
 DW [ 1 0 0 ]
 DW [ 0 1 0 ]
 DW [ 0 0 1 ]
 .camLens //pixels per unit at one unit of distance
-DW [ 1 ] // <-- set this to 1 if you're using orthographic. Otherwise, feel free to adjust it. The larger it is relative to screen size, the narrower the FOV. If this == screen size, you get 90 degrees FOV.
+DW [ 1 ] // <-- set this low (1 is good) if you're using orthographic. When using perspective, the larger it is relative to screen size, the narrower the FOV. If this == screen size, you get 90 degrees FOV. It's also worth noting that if this * screen size > @smax, you may run into overflow errors.
 .camClipNear //near clipping plane
 DW [ 1 ]
 .camClipFar //far clipping plane
@@ -18,8 +18,8 @@ DW [ 2056 ]
 
 
 @define meshAddr .bottle // <-- replace this label with your mesh's name
-@define fillTriangles 1 // <-- set this to zero if you only want the point cloud, no filled triangles
-@define orthographic 1 // <-- 1 = orthographic, 0 = perspective. Orthographic is less broken. Make sure to adjust the .camLens value when using orthographic.
+@define fillTriangles 1 // <-- 1 = filled triangles, 0 = vertices only
+@define orthographic 1 // <-- 1 = orthographic, 0 = perspective. Make sure to adjust the .camLens value when using orthographic.
 
 //V V paste mesh data here V V
 
@@ -56,14 +56,15 @@ DW [ 2056 ]
 
 
 out %buffer 2
-out %buffer 1
 .loop
     out %buffer 1
+
+    cal .drawMesh
+
     llod var1 .camPos 1
     inc var1 var1
     lstr .camPos 1 var1
 
-    cal .drawMesh
     out %buffer 0
 //jmp .loop
 hlt
@@ -267,7 +268,12 @@ ret
         llod var2 activeVertex z
         
         llod gen1 activeVertex x
+
+        xor gen2 gen1 var1
         mlt gen1 gen1 var1
+        xor gen2 gen2 gen1
+        brn .toScreenSpaceClip gen2 //if multiplication overflows/gets the sign wrong, clip.
+
         bnz ~2 orthographic
             sdiv gen1 gen1 var2
         in gen2 %x
@@ -276,7 +282,12 @@ ret
         lstr activeVertex x gen1
 
         llod gen1 activeVertex y
+
+        xor gen2 gen1 var1
         mlt gen1 gen1 var1
+        xor gen2 gen2 gen1
+        brn .toScreenSpaceClip gen2 //if multiplication overflows/gets the sign wrong, clip.
+
         bnz ~2 orthographic
             sdiv gen1 gen1 var2
         in gen2 %y
