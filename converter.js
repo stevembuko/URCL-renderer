@@ -81,21 +81,52 @@ function loadFace(line) {
         let v3 = f[i + 1].split("/");
 
         let t = [];
-        t[0] = Number(v1[0]);
-        t[1] = Number(v2[0]);
-        t[2] = Number(v3[0]);
+        t[0] = Number(v1[0] - 1);
+        t[1] = Number(v2[0] - 1);
+        t[2] = Number(v3[0] - 1);
         if (useTexture) {
-            t.push(Number(v1[1]));
-            t.push(Number(v2[1]));
-            t.push(Number(v3[1]));
+            t.push(Number(v1[1] - 1));
+            t.push(Number(v2[1] - 1));
+            t.push(Number(v3[1] - 1));
         }
         if (useNormals) {
-            t.push(Number(v1[2]));
-            t.push(Number(v2[2]));
-            t.push(Number(v3[2]));
+            t.push(Number(v1[2] - 1));
+            t.push(Number(v2[2] - 1));
+            t.push(Number(v3[2] - 1));
         }
         faces.push(t);
     }
+}
+
+function buildNewObjOutput() {
+    let output = "";
+    vertices.forEach(v => {
+        output += "v " + v[0] + " " + v[1] + " " + v[2] + "\n";
+    });
+    uvs.forEach(vt => {
+        output += "vt " + vt[0] + " " + vt[1] + "\n";
+    });
+    normals.forEach(vn => {
+        output += "vn" + vn[0] + " " + vn[1] + " " + vn[2] + "\n";
+    });
+    faces.forEach(f => {
+        output += "f";
+        for (let i = 0; i < 3; i++) {
+            output += " " + f[i];
+            if (useTexture) {
+                output += "/" + f[3 + i];
+            }
+            if (useNormals) {
+                if (useTexture) {
+                    output += "/" + f[6 + i];
+                } else {
+                    output += "//" + f[3 + i];
+                }
+            }
+        }
+        output += "\n";
+    });
+    return output;
 }
 
 function buildURCLOutput() {
