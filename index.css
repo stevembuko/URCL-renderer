@@ -41,13 +41,6 @@
   #stdout {
     overflow-y: auto;
   }
-  canvas {
-    background-color: black;
-    image-rendering: crisp-edges;
-    image-rendering: pixelated;
-    border: 0.1rem solid rgb(53, 53, 53);
-  }
-  
   
   html {
     font-family: "unscii";

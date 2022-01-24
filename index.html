@@ -22,20 +22,38 @@
             <div>
                 <h2>Options</h2>
                 <span class="options">
-                    <label>object name: </label><input id="objectName" type="text" value="mesh">
+                    <label>object name: </label>
+                        <input id="objectName" type="text" value="mesh"><br>
+                    <label>scale: </label>
+                        <input id="scale" type="number" value="2"><br>
+                    <label>use normals (not fully supported yet): </label>
+                        <input id="useNormals" type="checkbox"><br>
+                    <label>texture (not fully supported yet): </label>
+                        <input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
+                        <img id="texturePreview" alt="preview image" height="128"><br>
+                    <label>Width: </label>
+                        <input id="textureWidth" type="number">
+                    <label>Height: </label>
+                        <input id="textureHeight" type="number"><br>
+                    <label>color type: </label>
+                        <select id="colorType">
+                            <option value="PICO8">PICO8</option>
+                            <option value="APICO8">APICO8</option>
+                            <option value="BIN">BIN</option>
+                            <option value="MONO">MONO</option>
+                            <option value="RGB8">RGB8</option>
+                            <option value="ARGB8">ARGB8</option>
+                            <option value="RGB16">RGB16</option>
+                            <option value="ARGB16">ARGB16</option>
+                            <option value="RGB24">RGB24</option>
+                            <option value="ARGB32">ARGB32</option>
+                            <option value="RGBI">RGBI</option>
+                        </select><br>
+                    <label>use texture (not fully supported yet): </label>
+                        <input id="useTexture" type="checkbox" disabled>
                 </span>
                 <span class="options">
-                    <label>scale: </label><input id="scale" type="number" value="2">
-                </span>
-                <span class="options">
-                    <label>use normals (not fully supported yet): </label><input id="useNormals" type="checkbox">
-                </span>
-                <span class="options">
-                    <label>texture (not fully supported yet): </label><input id="textureFile" type="file" accept="image/png, image/jpg, image/jpeg"> <span id="textureMsg"></span><br>
-                    <img id="texturePreview" alt="preview image" height="128">
-                </span>
-                <span class="options">
-                    <label>use texture (not fully supported yet): </label><input id="useTexture" type="checkbox" disabled>
+                    
                 </span><br>
                 <button id="convertButton">Convert</button>
                 <h3>Converted URCL data:</h3>

@@ -1,6 +1,14 @@
-const objInput = document.getElementById("sourceFile");
-const importButton = document.getElementById("importButton");
-const textureInput = document.getElementById("textureFile");
+let objInput = document.getElementById("sourceFile");
+let importButton = document.getElementById("importButton");
+let textureInput = document.getElementById("textureFile");
+let texturePreview = document.getElementById("texturePreview");
+let textureWidthInput = document.getElementById("textureWidth");
+let textureHeightInput = document.getElementById("textureHeight");
+
+let canvas = document.createElement("canvas");
+let ctx = canvas.getContext("2d");
+
+let img = new Image();
 
 let objText;
 
@@ -39,7 +47,13 @@ textureInput.addEventListener("change", function(event) {
     let reader = new FileReader();
 
     reader.onload = function() {
-        document.getElementById("texturePreview").src = reader.result;
+        texturePreview.src = reader.result;
+
+        // let img = new Image();
+        img.src = reader.result;
+
+        img.onload = function() {
+        }
     }
     reader.readAsDataURL(files[0]);
 
