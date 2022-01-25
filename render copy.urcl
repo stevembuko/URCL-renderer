@@ -1,10 +1,11 @@
 bits == 16
 minreg 15
+minheap 64000
 
 
 //camera varibles
 .camPos //x, y, and z position of the camera
-DW [ 0 50 -400 ] // <-- adjust the position of the camera here
+DW [ 1 -50 -100 ] // <-- adjust the position of the camera here
 .camRotation //simplified world to camera space matrix
 DW [ 1 0 0 ]
 DW [ 0 1 0 ]
@@ -14,11 +15,10 @@ DW [ 128 ]  // <-- set this low (1 is good) if you're using orthographic. When u
 .camClipNear //near clipping plane
 DW [ 1 ]
 .camClipFar //far clipping plane
-DW [ 1028 ]
+DW [ 255 ]
 
 
-@define meshAddr .bottle // <-- replace this label with your mesh's name
-@define fillTriangles 1 // <-- 1 = filled triangles, 0 = vertices only
+@define meshAddr .chair // <-- replace this label with your mesh's name
 @define orthographic 0 // <-- 1 = orthographic, 0 = perspective. Make sure to adjust the .camLens value when using orthographic.
 
 //V V paste mesh data here V V
@@ -28,13 +28,13 @@ DW [ 1028 ]
 
 //active vertices
     .activeTriV1 //x, y, z, u, v
-        DW [ 0 0 0  0 0 ]
+    DW [ 2 2 20  0 0 ]
     .activeTriV2
-        DW [ 0 0 0  0 0 ]
+    DW [ 10 15 30  0 0 ]
     .activeTriV3
-        DW [ 0 0 0  0 0 ]
+    DW [ 15 2 10  0 0 ]
     .tempVert
-        DW [ 0 0 0  0 0 ]
+    DW [ 0 0 0  0 0 ]
     @define x 0
     @define y 1
     @define z 2
@@ -57,8 +57,19 @@ DW [ 1028 ]
 @define temp r10
 
 
+
 out %buffer 2
 .loop
+
+    imm gen1 0
+    in var1 %x
+    in var2 %y
+    mlt gen2 var1 var2
+    .DBLoop
+        lstr .depthBuffer gen1 @max
+        inc gen1 gen1
+    brl .DBLoop gen1 gen2
+
     out %buffer 1
 
     cal .drawMesh
@@ -68,7 +79,14 @@ out %buffer 2
     lstr .camPos 1 var1
 
     out %buffer 0
-//jmp .loop
+jmp .loop
+
+
+// out %buffer 2
+// out %buffer 1
+// cal .drawTriangle
+// out %buffer 0
+
 hlt
 
 .drawMesh
@@ -150,28 +168,7 @@ hlt
         cal .toScreenSpace
         bnz .triLoopNext clip
 
-        //draw vertices
-            llod var1 .activeTriV1 x
-            out %x var1
-            llod var1 .activeTriV1 y
-            out %y var1
-            out %color 1
-
-            llod var1 .activeTriV2 x
-            out %x var1
-            llod var1 .activeTriV2 y
-            out %y var1
-            out %color 1
-
-            llod var1 .activeTriV3 x
-            out %x var1
-            llod var1 .activeTriV3 y
-            out %y var1
-            out %color 1
-        //end draw vertices
-
         //draw the triangle
-        brz .triLoopNext fillTriangles
         psh triIndex
         psh frame
         cal .drawTriangle
@@ -353,6 +350,10 @@ ret
     bre .flatTopTri var2 var1
 
     //draw the triangle normally
+        
+        llod var1 v2 y
+        lstr .tempVert y var1
+
         llod var1 v3 x
         llod var2 v1 x
         sub gen1 var1 var2
@@ -360,8 +361,6 @@ ret
         llod var1 v2 y
         llod var2 v1 y
         sub gen2 var1 var2
-
-        lstr .tempVert y var1 //store this now because it's already in a register here
 
         mlt gen1 gen1 gen2
 
@@ -373,6 +372,27 @@ ret
         llod var1 v1 x
         add gen1 gen1 var1
         lstr .tempVert x gen1
+
+
+        llod var1 v3 z
+        llod var2 v1 z
+        sub gen1 var1 var2
+
+        llod var1 v2 y
+        llod var2 v1 y
+        sub gen2 var1 var2
+
+        mlt gen1 gen1 gen2
+
+        llod var1 v3 y
+        sub gen2 var1 var2
+
+        sdiv gen1 gen1 gen2
+
+        llod var1 v1 z
+        add gen1 gen1 var1
+        lstr .tempVert z gen1
+
 
         mov temp v3
         imm v3 .tempVert
@@ -426,23 +446,35 @@ ret
         llod var1 v1 x
         llod var2 v2 x
         sble .lineSort1 var1 var2
-            mov xI var2
-            mov maxX var1
-            jmp .lineSort1End
+            mov temp v1
+            mov v1 v2
+            mov v2 temp
         .lineSort1
-            mov xI var1
-            mov maxX var2
-        .lineSort1End
+        llod var1 v2 x
+        llod var2 v3 x
+        sble .lineSort2 var1 var2
+            mov temp v2
+            mov v2 v3
+            mov v3 temp
 
-        llod var1 v3 x
-        sbrl .lineSort2End xI var1
-            mov xI var1
-            jmp .lineSort3End
-        .lineSort2End
-        
-        sbrg .lineSort3End maxX var1
-            mov maxX var1
-        .lineSort3End
+            llod var1 v1 x
+            llod var2 v2 x
+            sble .lineSort2 var1 var2
+                mov temp v1
+                mov v1 v2
+                mov v2 temp
+        .lineSort2
+
+        llod minX v1 x
+        mov xI minX
+        llod minDepth v1 z
+
+        llod maxX v3 x
+        llod maxDepth v3 z
+
+        llod yI v1 y
+        in var1 %y
+        bge .endLine yI var1
 
         brn .endLine maxX
 
@@ -452,9 +484,26 @@ ret
         llod gen1 v1 y
         out %y gen1
         .lineLoop
-            out %x xI
-            out %color 1 //TODO add color system?
-            inc xI xI
+
+            sub gen1 xI minX
+            sub gen2 maxDepth minDepth
+            mlt gen1 gen1 gen2
+            sub gen2 maxX minX
+            sdiv gen1 gen1 gen2
+            add gen1 gen1 minDepth
+
+            in gen2 %x
+            mlt gen2 yI gen2
+            add gen2 gen2 xI
+            //llod var1 .depthBuffer gen2
+
+            bge .FBTriXLoopNext gen1 var1
+                lstr .depthBuffer gen2 gen1
+
+                out %x xI
+                out %color gen1 //TODO add color system?
+            .lineLoopNext
+                inc xI xI
         ble .lineLoop xI maxX
 
     .endLine
@@ -550,9 +599,8 @@ ret
 
                 sdiv gen1 gen1 gen2
 
-                llod var1 v1 x
+                llod var1 v1 z
                 add minDepth gen1 var1
-
 
                 //calculate scanline end X depth
                 llod var1 v3 z
@@ -572,7 +620,6 @@ ret
                 llod var1 v2 z
                 add maxDepth gen1 var1
 
-
                 //clamp start and end coords to screen
                 ssetg gen1 xI 0
                 and xI xI gen1
@@ -591,7 +638,7 @@ ret
                     sub gen2 maxDepth minDepth
                     mlt gen1 gen1 gen2
                     sub gen2 maxX minX
-                    div gen1 gen1 gen2
+                    sdiv gen1 gen1 gen2
                     add gen1 gen1 minDepth
 
                     in gen2 %x
@@ -600,7 +647,7 @@ ret
                     llod var1 .depthBuffer gen2
                     bge .FBTriXLoopNext gen1 var1
 
-                        lstr .depthBuffer  gen1
+                        lstr .depthBuffer gen2 gen1
 
                         out %x xI
                         out %color gen1 //TODO add color system?
@@ -627,10 +674,9 @@ ret
                 //xI
                 //yI
                 //maxX
-                //maxY
         .drawFlatTopTri
-            llod maxY v3 y
-            brn .endFTTri maxY //if end coord is before the screen, don't draw the triangle
+            llod var1 v3 y
+            brn .endFTTri var1 //if end coord is before the screen, don't draw the triangle
 
             llod yI v1 y
 
@@ -640,8 +686,8 @@ ret
 
             in gen1 %y
             dec gen1 gen1
-            ble .FTTriMaxY maxY gen1
-                mov maxY gen1
+            ble .FTTriMaxY var1 gen1
+                mov var1 gen1
             .FTTriMaxY
 
             //loop through each Y coord in the triangle
@@ -682,7 +728,44 @@ ret
                 sdiv gen1 gen1 gen2
 
                 llod var1 v1 x
-                add xI gen1 var1
+                add minX gen1 var1
+                mov xI minX
+
+                //calculate start X Depth
+                llod var1 v2 z
+                llod var2 v1 z 
+                sub gen2 var1 var2
+
+                llod var1 v1 y
+                sub gen1 yI var1
+
+                mlt gen1 gen1 gen2
+
+                llod var2 v2 y
+                sub gen2 var2 var1
+
+                sdiv gen1 gen1 gen2
+
+                llod var1 v1 z
+                add minDepth gen1 var1
+
+                //calculate end X depth
+                llod var1 v3 z
+                llod var2 v1 z
+                sub gen2 var1 var2
+
+                llod var1 v1 y
+                sub gen1 yI var1
+
+                mlt gen1 gen1 gen2
+
+                llod var2 v3 y
+                sub gen2 var2 var1
+
+                sdiv gen1 gen1 gen2
+
+                llod var1 v1 z
+                add maxDepth gen1 var1
 
                 //clamp beginning and end X to screen
                 ssetg gen1 xI 0
@@ -695,16 +778,36 @@ ret
                 .FTTriMaxX
 
                 //draw the scanline
+
                 out %y yI
                 .FTTriXLoop
-                    out %x xI
-                    out %color 1 //TODO add color system?
+
+                    sub gen1 xI minX
+                    sub gen2 maxDepth minDepth
+                    mlt gen1 gen1 gen2
+                    sub gen2 maxX minX
+                    sdiv gen1 gen1 gen2
+                    add gen1 gen1 minDepth
+
+                    in gen2 %x
+                    mlt gen2 yI gen2
+                    add gen2 gen2 xI
+                    llod var1 .depthBuffer gen2
+
+                    bge .FTTriXLoopNext gen1 var1
+
+                        lstr .depthBuffer gen2 gen1
+
+                        out %x xI
+                        out %color gen1 //TODO add color system?
+                    .FTTriXLoopNext
                     inc xI xI
                 ble .FTTriXLoop xI maxX
 
                 .FTTriYLoopNext
                     inc yI yI
-            ble .FTTriYLoop yI maxY
+                    llod var1 v3 y
+            ble .FTTriYLoop yI var1
         .endFTTri
         ret
     //end helper functions
