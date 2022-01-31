@@ -1,6 +1,6 @@
 let objectName, scale, useNormals, useTexture, textureWidth, textureHeight, colorType;
 
-let vertices, uvs, normals, faces, other, texture;
+let vertices, uvs, normals, triVertices, triUvs, triNormals, other, texture;
 
 document.getElementById("convertButton").addEventListener("click", function() {
     let objText = document.getElementById("objSource").value;
@@ -38,7 +38,9 @@ function convert(objText) {
     vertices = [];
     uvs = [];
     normals = [];
-    faces = [];
+    triVertices = [];
+    triUvs = [];
+    triNormals = [];
     other = [];
     texture = [];
 
@@ -67,7 +69,7 @@ function convert(objText) {
         return "Error: .obj contains no normals data";
     }
     if (useTexture && uvs.length == 0) {
-        return "Error: .obj contains no texture data";
+        return "Error: .obj contains no UV data";
     }
 
     if (useTexture) {
@@ -76,39 +78,47 @@ function convert(objText) {
         for (let i = 0; i < imgData.length; i += 4) {
             switch(colorType) {
                 case "PICO8":
-                    texture.push(toPICO8(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toPICO8(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "APICO8":
                     texture.push(toAPICO8(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
                 case "MONO":
-                    texture.push(toMONO(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toMONO(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "BIN":
-                    texture.push(toBIN(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toBIN(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "RGB8":
-                    texture.push(toRGB8(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toRGB8(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "ARGB8":
                     texture.push(toARGB8(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
                     break;
                 case "RGB16":
-                    texture.push(toRGB16(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toRGB16(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "ARGB16":
                     texture.push(toARGB16(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
                     break;
                 case "RGB24":
-                    texture.push(toRGB24(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toRGB24(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
                 case "ARGB32":
                     texture.push(toARGB32(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
                     break;
                 case "RGBI":
-                    texture.push(toRGBI(imgData[i], imgData[i + 1], imgData[i+2], imgData[i+3]));
+                    texture.push(toRGBI(imgData[i], imgData[i + 1], imgData[i+2]));
                     break;
             }
         }
+    }
+
+    compressVertices();
+    if (useTexture) {
+        compressUvs();
+    }
+    if (useNormals) {
+        compressNormals();
     }
 
     return buildURCLOutput();
@@ -127,8 +137,8 @@ function loadUV(line) {
         return;
     }
     let vt = line.substring(3).split(" ");
-    vt[0] = Math.floor(Number(vt[0]) * textureWidth);
-    vt[1] = Math.floor(Number(vt[1]) * textureHeight);
+    vt[0] = Math.round(vt[0] * 256);
+    vt[1] = Math.round((1 - vt[1]) * 256);
     uvs.push(vt);
 }
 
@@ -150,25 +160,31 @@ function loadFace(line) {
         let v2 = f[i].split("/");
         let v3 = f[i + 1].split("/");
 
-        let t = [];
-        t[0] = Number(v1[0] - 1);
-        t[1] = Number(v2[0] - 1);
-        t[2] = Number(v3[0] - 1);
+        let tv = [];
+        tv[0] = Number(v1[0] - 1);
+        tv[1] = Number(v2[0] - 1);
+        tv[2] = Number(v3[0] - 1);
+        triVertices.push(tv);
+
         if (useTexture) {
-            t.push(Number(v1[1] - 1));
-            t.push(Number(v2[1] - 1));
-            t.push(Number(v3[1] - 1));
+            let tu = [];
+            tu.push(Number(v1[1] - 1));
+            tu.push(Number(v2[1] - 1));
+            tu.push(Number(v3[1] - 1));
+            triUvs.push(tu);
         }
+
         if (useNormals) {
-            t.push(Number(v1[2] - 1));
-            t.push(Number(v2[2] - 1));
-            t.push(Number(v3[2] - 1));
+            let tn = [];
+            tn.push(Number(v1[2] - 1));
+            tn.push(Number(v2[2] - 1));
+            tn.push(Number(v3[2] - 1));
+            triNormals.push(tn);
         }
-        faces.push(t);
     }
 }
 
-function toPICO8(r, g, b, a) {
+function toPICO8(r, g, b) {
     let colors = [
         [0, 0, 0],
         [29, 43, 83],
@@ -216,19 +232,18 @@ function toAPICO8(r, g, b, a) {
     return alpha | color;
 }
 
-function toMONO(r, g, b, a) {
+function toMONO(r, g, b) {
     return Math.max(r, g, b);
 }
 
-function toBIN(r, g, b, a) {
+function toBIN(r, g, b) {
     return Math.max(r, g, b) >= 128 ? 1 : 0;
 }
 
-function toRGB8(r, g, b, a) {
-    a = a / 255;
-    r = 0b11100000 & Math.round(r * a);
-    g = 0b11100000 & Math.round(g * a);
-    b = 0b11000000 & Math.round(b * a);
+function toRGB8(r, g, b) {
+    r = 0b11100000 & r;
+    g = 0b11100000 & g;
+    b = 0b11000000 & b;
     return r | (g >> 3) | (b >> 6);
 }
 
@@ -240,11 +255,10 @@ function toARGB8(r, g, b, a) {
     return a | (r >> 2) | (g >> 4) | (b >> 6);
 }
 
-function toRGB16(r, g, b, a) {
-    a = a / 255;
-    r = 0b11111000 & Math.round(r * a);
-    g = 0b11111100 & Math.round(g * a);
-    b = 0b11111000 & Math.round(b * a);
+function toRGB16(r, g, b) {
+    r = 0b11111000 & r;
+    g = 0b11111100 & g;
+    b = 0b11111000 & b;
     return (r << 8) | (g << 3) | (b >> 3);
 }
 
@@ -256,30 +270,115 @@ function toARGB16(r, g, b, a) {
     return (a << 8) | (r << 4) | g | (b >> 4);
 }
 
-function toRGB24(r, g, b, a) {
-    a = a / 255;
-    r = Math.round(r * a);
-    g = Math.round(g * a);
-    b = Math.round(b * a);
-    return r | (g >> 8) | (b >> 16);
+function toRGB24(r, g, b) {
+    return (r << 16) | (g << 8) | b;
 }
 
 function toARGB32(r, g, b, a) {
     return (a << 24) | (r << 16) | (g << 8) | b;
 }
 
-function toRGBI(r, g, b, a) {
-    a = a / 255;
+function toRGBI(r, g, b) {
     max = Math.max(r, g, b)
-    if (max * a < 64) {
+    if (max < 64) {
         return 0b0000
     } else {
         r = Math.round(r / max);
         g = Math.round(g / max);
         b = Math.round(g / max);
-        let i = Math.round(max / 255 * a * 0.75);
+        let i = Math.round(max / 255 * 0.75);
         return (r << 3) | (g << 2) | (b << 1) | i;
     }
+}
+
+function compressVertices() {
+    let compressedVertices = [vertices[0]];
+    let compressionGuide = [0];
+    for (let i = 1; i < vertices.length; i++) {
+        let v = vertices[i];
+        let index = -1;
+        for (let j = 0; j < compressedVertices.length; j++) {
+            let cv = compressedVertices[j];
+            if (v[0] == cv[0] && v[1] == cv[1] && v[2] == cv[2]) {
+                index = j;
+                break;
+            }
+        }
+        if (index == -1) {
+            compressionGuide.push(compressedVertices.length);
+            compressedVertices.push(v);
+        } else {
+            compressionGuide.push(index);
+        }
+        
+    }
+
+    vertices = compressedVertices;
+    triVertices.forEach(t => {
+        t[0] = compressionGuide[t[0]];
+        t[1] = compressionGuide[t[1]];
+        t[2] = compressionGuide[t[2]];
+    });
+}
+
+function compressUvs() {
+    let compressedUvs = [uvs[0]];
+    let compressionGuide = [0];
+    for (let i = 1; i < uvs.length; i++) {
+        let v = uvs[i];
+        let index = -1;
+        for (let j = 0; j < compressedUvs.length; j++) {
+            let cv = compressedUvs[j];
+            if (v[0] == cv[0] && v[1] == cv[1] && v[2] == cv[2]) {
+                index = j;
+                break;
+            }
+        }
+        if (index == -1) {
+            compressionGuide.push(compressedUvs.length);
+            compressedUvs.push(v);
+        } else {
+            compressionGuide.push(index);
+        }
+        
+    }
+    
+    uvs = compressedUvs;
+    triUvs.forEach(t => {
+        t[0] = compressionGuide[t[0]];
+        t[1] = compressionGuide[t[1]];
+        t[2] = compressionGuide[t[2]];
+    });
+}
+
+function compressNormals() {
+    let compressedNormals = [normals[0]];
+    let compressionGuide = [0];
+    for (let i = 1; i < normals.length; i++) {
+        let v = normals[i];
+        let index = -1;
+        for (let j = 0; j < compressedNormals.length; j++) {
+            let cv = compressedNormals[j];
+            if (v[0] == cv[0] && v[1] == cv[1] && v[2] == cv[2]) {
+                index = j;
+                break;
+            }
+        }
+        if (index == -1) {
+            compressionGuide.push(compressedNormals.length);
+            compressedNormals.push(v);
+        } else {
+            compressionGuide.push(index);
+        }
+        
+    }
+    
+    normals = compressedNormals;
+    triNormals.forEach(t => {
+        t[0] = compressionGuide[t[0]];
+        t[1] = compressionGuide[t[1]];
+        t[2] = compressionGuide[t[2]];
+    });
 }
 
 function buildNewObjOutput() {
@@ -288,40 +387,47 @@ function buildNewObjOutput() {
         output += "v " + v[0] + " " + v[1] + " " + v[2] + "\n";
     });
     uvs.forEach(vt => {
-        output += "vt " + vt[0] + " " + vt[1] + "\n";
+        output += "vt " + vt[0] / 256 + " " + vt[1] / 256 + "\n";
     });
     normals.forEach(vn => {
         output += "vn" + vn[0] + " " + vn[1] + " " + vn[2] + "\n";
     });
-    faces.forEach(f => {
+    for (let i = 0; i < triVertices.length; i++) {
+        let f = triVertices[i];
+        let t = triUvs[i];
+        let n = triNormals[i];
         output += "f";
-        for (let i = 0; i < 3; i++) {
-            output += " " + f[i];
+        for (let j = 0; j < 3; j++) {
+            output += " " + (f[j] + 1);
             if (useTexture) {
-                output += "/" + f[3 + i];
+                output += "/" + (t[j] + 1);
             }
             if (useNormals) {
                 if (useTexture) {
-                    output += "/" + f[6 + i];
+                    output += "/" + (n[j] + 1);
                 } else {
-                    output += "//" + f[3 + i];
+                    output += "//" + (n[j] + 1);
                 }
             }
         }
         output += "\n";
-    });
+    }
     return output;
 }
 
 function buildURCLOutput() {
     let output = "." + objectName + "\n";
+
     output += "\t//map\n";
     output += "\t\tDW [ ." + objectName + "Vertices ] //vertices address\n";
     output += "\t\tDW [ " + (useTexture ? "." + objectName + "UVs ] //UVs address\n" : "0 ] //no UVs\n");
     output += "\t\tDW [ " + (useNormals ? "." + objectName + "Normals ] //normals address\n" : "0 ] //no normals\n");
-    output += "\t\tDW [ ." + objectName + "Tris ] //triangles address\n";
+    output += "\t\tDW [ ." + objectName + "TriVertices ] //triangle vertices address\n";
+    output += "\t\tDW [ ." + (useTexture ? objectName + "TriUVs ] //triangle UVs address\n" : "0 ] //no UVs\n");
+    output += "\t\tDW [ " + (useNormals ? "." + objectName + "TriNormals ] //triangle normals address\n" : "0 ] //no normals\n");
     output += "\t\tDW [ " + (useTexture ? "." + objectName + "Texture ] //texture address\n" : "0 ] //no texture\n")
     output += "\t//end map\n";
+
     output += "\t//vertices\n";
     output += "\t\tDW [ " + vertices.length + " ] //num vertices\n";
     output += "\t." + objectName + "Vertices //x, y, z\n";
@@ -329,6 +435,7 @@ function buildURCLOutput() {
         output  += "\t\tDW [ " + v[0] + " " + v[1] + " " + v[2] + " ]\n";
     });
     output += "\t//end vertices\n";
+
     if (useTexture) {
         output += "\t//UVs\n";
         output += "\t\tDW [ " + uvs.length + " ] //num UVs\n";
@@ -338,6 +445,7 @@ function buildURCLOutput() {
         });
         output += "\t//end UVs\n";
     }
+
     if (useNormals) {
         output += "\t//normals\n";
         output += "\t\tDW [ " + normals.length + " ] //num normals\n";
@@ -347,32 +455,34 @@ function buildURCLOutput() {
         });
         output += "\t//end normals\n";
     }
+
     output += "\t//tris\n";
-    output += "\t\tDW [ " + faces.length + " ] //num tris\n";
-    output += "\t." + objectName + "Tris //v1, v2, v3";
+    output += "\t\tDW [ " + triVertices.length + " ] //num tris\n";
+    output += "\t." + objectName + "TriVertices //v1, v2, v3\n";
+    triVertices.forEach(tv => {
+        output += "\t\tDW [ " + tv[0] + " " + tv[1] + " " + tv[2] + " ]\n"
+    });
     if (useTexture) {
-        output += ", vt1, vt2, vt3";
+        output += "\t." + objectName + "TriUVs //t1, t2, t3\n";
+        triUvs.forEach(tt => {
+            output += "\t\tDW [ " + tt[0] + " " + tt[1] + " " + tt[2] + " ]\n"
+        }); 
     }
     if (useNormals) {
-        output += ", vn1, vn2, vn3";
-    }
-    output += "\n";
-    faces.forEach(t => {
-        let line = "\t\tDW [ ";
-        t.forEach(v => {
-            line += v + " ";
+        output += "\t." + objectName + "TriNormlas //n1, n2, n3\n";
+        triNormals.forEach(tn => {
+            output += "\t\tDW [ " + tn[0] + " " + tn[1] + " " + tn[2] + " ]\n";
         });
-        output += line + "]\n";
-    });
+    }
     output += "\t//end tris\n";
 
     if (useTexture) {
         output += "\t//texture\n";
         output += "\t\tDW [ " + textureWidth + " " + textureHeight + " ] //width, height\n";
         output += "\t." + objectName + "Texture\n";
-        for (let i = 0, x = 0; x < textureWidth; x++) {
+        for (let i = 0, x = 0; x < textureHeight; x++) {
             output += "\t\tDW [ ";
-            for (let y = 0; y < textureHeight; y++) {
+            for (let y = 0; y < textureWidth; y++) {
                 output += texture[i] + " ";
                 i++;
             }
