@@ -1818,11 +1818,6 @@ hlt
         llod var1 var1 -1
         bge .endTriLoop triIndex var1
 
-        //TODO make it work with 6 word triangle definitions
-        //TODO get U and V coordinates in addition to X Y and Z
-
-        
-
         //get world position of vertices
         mlt gen1 triIndex 3
         llod var1 meshAddr 3 //triVertices list address
@@ -1957,6 +1952,28 @@ hlt
         imm addr .activeTriV3
         cal .toScreenSpace
         bnz .triLoopNext clip
+
+		//backface culling
+			//find cross product
+				llod var1 .activeTriV1 sx
+				llod var2 .activeTriV3 sx
+				sub gen1 var1 var2
+				llod var1 .activeTriV2 sy
+				llod var2 .activeTriV3 sy
+				sub gen2 var1 var2
+				mlt gen1 gen1 gen2
+				psh gen1
+				llod var1 .activeTriV1 sy
+				sub gen1 var1 var2
+				llod var1 .activeTriV2 sx
+				llod var2 .activeTriV3 sx
+				sub gen2 var1 var2
+				mlt gen2 gen1 gen2
+				pop gen1
+				sub gen1 gen1 gen2
+			//cull
+				brn .triLoopNext gen1
+		//end backface culling
 
         //draw the triangle
         psh triIndex
